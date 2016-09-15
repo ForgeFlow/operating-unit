@@ -11,10 +11,6 @@ This module introduces the operating unit to the Sales Order.
 Security rules are defined to ensure that users can only display the
 Sales Orders in which they are allowed access to.
 
-Installation
-============
-
-No additional installation instructions are required.
 
 Configuration
 =============

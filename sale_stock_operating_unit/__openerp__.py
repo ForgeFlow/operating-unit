@@ -11,6 +11,7 @@
     "version": "9.0.1.0.0",
     "author": "Eficent, Serpent Consulting Services Pvt. Ltd., "
               "Odoo Community Association (OCA)",
+    "license": "LGPL-3",
     "website": "http://www.eficent.com",
     "category": "Sales Management",
     "depends": [
@@ -19,5 +20,4 @@
         "stock_operating_unit",
     ],
     'installable': True,
-    'active': False,
 }
