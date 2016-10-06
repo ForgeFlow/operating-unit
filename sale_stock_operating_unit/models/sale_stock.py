@@ -28,6 +28,16 @@ class StockMove(models.Model):
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    @api.onchange('team_id')
+    def onchange_team_id(self):
+        super(SaleOrder, self).onchange_team_id()
+        if self.team_id and self.team_id.operating_unit_id:
+            warehouses = self.env['stock.warehouse'].search(
+                [('operating_unit_id', '=',
+                  self.team_id.operating_unit_id.id)])
+            if warehouses:
+                self.warehouse_id = warehouses[0]
+
     @api.multi
     @api.constrains('operating_unit_id', 'warehouse_id')
     def _check_wh_operating_unit(self):
