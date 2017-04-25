@@ -61,7 +61,7 @@ class TestProcurement(common.TransactionCase):
         })
         proc.check()
         proc.run()
-        request = proc.request_id
+        proc.request_id
         return proc
 
     def test_security(self):

@@ -31,8 +31,8 @@ class Procurement(models.Model):
     @api.one
     @api.constrains('location_id', 'warehouse_id')
     def _check_warehouse_operating_unit(self):
-        if self.warehouse_id and self.location_id.operating_unit_id and \
-                        self.warehouse_id.operating_unit_id != \
-                        self.location_id.operating_unit_id:
+        if self.warehouse_id and self.location_id.operating_unit_id and\
+            self.warehouse_id.operating_unit_id !=\
+            self.location_id.operating_unit_id:
             raise Warning(_('Warehouse and location of procurement order '
                             'must belong to the same Operating Unit.'))

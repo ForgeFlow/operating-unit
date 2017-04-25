@@ -36,7 +36,8 @@ class TestPurchaseRequestToRequisition(common.TransactionCase):
             'product_uom_id': self.env.ref('product.product_uom_unit').id,
             'product_qty': 5.0,
         }
-        self.purchase_request_line = self.purchase_request_line_obj.create(vals)
+        self.purchase_request_line =\
+            self.purchase_request_line_obj.create(vals)
 
     def test_purchase_request_to_purchase_requisition(self):
         wiz = self.wiz.with_context(
@@ -44,7 +45,8 @@ class TestPurchaseRequestToRequisition(common.TransactionCase):
             active_ids=[self.purchase_request_line.id],
             active_id=self.purchase_request_line.id).create({})
         wiz.make_purchase_requisition()
-        requisition_id = self.purchase_request_line.requisition_lines.requisition_id
+        requisition_id =\
+            self.purchase_request_line.requisition_lines.requisition_id
         self.assertEqual(
             requisition_id.operating_unit_id,
             self.purchase_request_line.operating_unit_id,
