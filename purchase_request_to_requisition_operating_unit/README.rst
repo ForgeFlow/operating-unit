@@ -2,17 +2,13 @@
    :target: https://www.gnu.org/licenses/lgpl.html
    :alt: License: LGPL-3
 
-=====================================
-Purchase Request with Operating Units
-=====================================
+======================================================
+Purchase Request to Call for Bids with Operating Units
+======================================================
 
 This module introduces the following features:
 
-* Adds the Operating Unit (OU) to the Purchase Request.
-
-* The user’s default Operating Unit (OU) is proposed at the time of creating the Purchase Request.
-
-* Security rules are defined to ensure that users can only see the Purchase Request of that Operating Units in which they are allowed access to.
+* This module pass the Operating Unit from the purchase request to the bid.
 
 
 Usage
