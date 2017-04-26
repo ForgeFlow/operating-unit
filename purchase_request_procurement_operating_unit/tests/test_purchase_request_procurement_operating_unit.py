@@ -32,11 +32,12 @@ class TestProcurement(common.TransactionCase):
         self.procurement_order = self._create_procurement_order()
 
     def _create_procurement_rule(self):
-        rule = self.procurement_rule_model.create({
-                'name': 'Procurement rule',
-                'action': 'buy',
-                'picking_type_id': self.picking_type.id,
-                })
+        rule = self.procurement_rule_model.\
+            create({
+                    'name': 'Procurement rule',
+                    'action': 'buy',
+                    'picking_type_id': self.picking_type.id
+                    })
         return rule
 
     def _create_procurement_order(self):
@@ -50,15 +51,16 @@ class TestProcurement(common.TransactionCase):
         res = new_line.onchange_product_id(self.product1.id)
         if res.get('value') and res.get('value').get('product_uom'):
             product_uom = res.get('value').get('product_uom')
-        proc = self.procurement_order_model.create({
-                'product_id': self.product1.id,
-                'product_uom': product_uom,
-                'product_qty': '10',
-                'name': 'Procurement Order',
-                'warehouse_id': self.warehouse.id,
-                'rule_id': self.rule.id,
-                'location_id': location_id,
-        })
+        proc = self.procurement_order_model.\
+            create({
+                    'product_id': self.product1.id,
+                    'product_uom': product_uom,
+                    'product_qty': '10',
+                    'name': 'Procurement Order',
+                    'warehouse_id': self.warehouse.id,
+                    'rule_id': self.rule.id,
+                    'location_id': location_id
+                    })
         proc.check()
         proc.run()
         proc.request_id

@@ -6,8 +6,11 @@
 {
     "name": "Purchase Request Procurement with Operating Units",
     "version": "9.0.1.0.0",
-    "author": "Eficent",
-    "website": "www.eficent.com",
+    "author": "Eficent Business and IT Consulting Services S.L., "
+              "Serpent Consulting Services Pvt. Ltd.,"
+              "Odoo Community Association (OCA)",
+    "license": "LGPL-3",
+    "website": "http://www.eficent.com",
     "category": "Purchase Management",
     "depends": ["purchase_request_procurement",
                 "purchase_request_operating_unit",
