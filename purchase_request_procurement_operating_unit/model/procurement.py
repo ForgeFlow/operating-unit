@@ -22,9 +22,9 @@ class Procurement(models.Model):
     @api.one
     @api.constrains('location_id', 'request_id')
     def _check_purchase_request_operating_unit(self):
-        if self.request_id and self.location_id.operating_unit_id and \
-                        self.request_id.operating_unit_id != \
-                        self.location_id.operating_unit_id:
+        if self.request_id and self.location_id.operating_unit_id and\
+            self.request_id.operating_unit_id !=\
+                self.location_id.operating_unit_id:
             raise Warning(_('The Purchase Request and the Procurement Order '
                             'must belong to the same Operating Unit.'))
 
