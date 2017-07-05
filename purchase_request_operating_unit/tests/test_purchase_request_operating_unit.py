@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-# © 2016 Eficent Business and IT Consulting Services S.L.
-# © 2016 Serpent Consulting Services Pvt. Ltd.
+# Copyright 2016-17 Eficent Business and IT Consulting Services S.L.
+#   (http://www.eficent.com)
+# Copyright 2016-17 Serpent Consulting Services Pvt. Ltd.
+#   (<http://www.serpentcs.com>)
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html).
 
-from openerp.tests import common
+from odoo.tests import common
 
 
 class TestPurchaseRequestOperatingUnit(common.TransactionCase):
@@ -26,7 +28,8 @@ class TestPurchaseRequestOperatingUnit(common.TransactionCase):
         # User
         self.user_root = self.env.ref('base.user_root')
         # Groups
-        self.grp_pr_mngr = self.env.ref('purchase_request.group_purchase_request_manager')
+        self.grp_pr_mngr = self.env.\
+            ref('purchase_request.group_purchase_request_manager')
         # Picking Type
         b2c_wh = self.env.ref('stock_operating_unit.stock_warehouse_b2c')
         self.b2c_type_in_id = b2c_wh.in_type_id.id
@@ -42,7 +45,8 @@ class TestPurchaseRequestOperatingUnit(common.TransactionCase):
                                        [self.b2c])
         self.request1 = self._create_purchase_request(self.ou1)
         self._purchase_line(self.request1)
-        self.request2 = self._create_purchase_request(self.b2c, self.b2c_type_in_id)
+        self.request2 = self._create_purchase_request(self.b2c,
+                                                      self.b2c_type_in_id)
         self._purchase_line(self.request2)
 
     def _create_user(self, login, groups, company, operating_units,
@@ -87,7 +91,7 @@ class TestPurchaseRequestOperatingUnit(common.TransactionCase):
 
     def test_purchase_request(self):
         record = self.purchase_request.sudo(self.user2.id).\
-                search([('id', '=', self.request1.id),
-                        ('operating_unit_id', '=', self.ou1.id)])
+            search([('id', '=', self.request1.id),
+                    ('operating_unit_id', '=', self.ou1.id)])
         self.assertEqual(record.ids, [], 'User 2 should not have access to '
-                                       'OU %s' % self.ou1.name)
+                         'OU %s' % self.ou1.name)

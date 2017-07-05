@@ -15,23 +15,12 @@ This module introduces the following features:
 * Security rules are defined to ensure that users can only see the Purchase Request of that Operating Units in which they are allowed access to.
 
 
-Installation
-============
-
-No specific installation requirements.
-
-Configuration
-=============
-
-No configuration is required. 
-
-
 Usage
 =====
 
 .. image:: https://odoo-community.org/website/image/ir.attachment/5784_f2813bd/datas
    :alt: Try me on Runbot
-   :target: https://runbot.odoo-community.org/runbot/213/9.0
+   :target: https://runbot.odoo-community.org/runbot/213/10.0
 
 
 Bug Tracker
