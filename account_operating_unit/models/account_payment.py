@@ -33,7 +33,7 @@ class AccountPayment(models.Model):
                 res = super(AccountPayment,
                             self)._get_counterpart_move_line_vals(
                     invoice=inv)
-                res['operating_unit_id'] = self.operating_unit_id.id or False
+                res['operating_unit_id'] = inv.operating_unit_id.id or False
                 return res
 
     def _get_liquidity_move_line_vals(self, amount):
