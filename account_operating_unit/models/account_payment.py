@@ -63,49 +63,11 @@ class AccountPayment(models.Model):
                 self.destination_journal_id.operating_unit_id.id or False})
         return dst_liquidity_aml_dict
 
-    def _get_transfer_debit_aml_dict_vals(self):
-        transfer_debit_aml_dict = {
-            'name': self.name,
-            'payment_id': self.id,
-            'account_id': self.company_id.transfer_account_id.id,
-            'journal_id': self.destination_journal_id.id
-        }
-        if self.currency_id != self.company_id.currency_id:
-            transfer_debit_aml_dict.update({
-                'currency_id': self.currency_id.id,
-                'amount_currency': -self.amount,
-            })
-        transfer_debit_aml_dict.update({
-            'operating_unit_id':
-                self.journal_id.operating_unit_id.id or False
-        })
-        return transfer_debit_aml_dict
-
-    def _create_transfer_entry(self, amount):
-        """ We need to override the standard method, until proper hooks are
-        created
+    def _get_shared_move_line_vals(self, debit, credit, amount_currency, move_id, invoice_id=False):
+        """ Returns values common to both move lines (except for debit, credit and amount_currency which are reversed)
         """
-        aml_obj = self.env['account.move.line'].with_context(
-            check_move_validity=False)
-        debit, credit, amount_currency, dummy = aml_obj.with_context(
-            date=self.payment_date).compute_amount_fields(
-            amount, self.currency_id, self.company_id.currency_id)
-        amount_currency = self.destination_journal_id.currency_id \
-            and self.currency_id.with_context(date=self.payment_date).compute(
-                amount, self.destination_journal_id.currency_id) or 0
-
-        dst_move = self.env['account.move'].create(
-            self._get_move_vals(self.destination_journal_id))
-
-        dst_liquidity_aml_dict = self._get_shared_move_line_vals(
-            debit, credit, amount_currency, dst_move.id)
-        dst_liquidity_aml_dict.update(self._get_dst_liquidity_aml_dict_vals())
-        aml_obj.create(dst_liquidity_aml_dict)
-
-        transfer_debit_aml_dict = self._get_shared_move_line_vals(
-            credit, debit, 0, dst_move.id)
-        transfer_debit_aml_dict.update(
-            self._get_transfer_debit_aml_dict_vals())
-        transfer_debit_aml = aml_obj.create(transfer_debit_aml_dict)
-        dst_move.post()
-        return transfer_debit_aml
+        res = super(AccountPayment, self)._get_shared_move_line_vals(
+            debit, credit, amount_currency, move_id, invoice_id
+        )
+        res['operating_unit_id'] = self.journal_id.operating_unit_id.id or False
+        return res
