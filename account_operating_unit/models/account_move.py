@@ -68,13 +68,22 @@ class AccountMoveLine(models.Model):
         return res
 
     @api.multi
-    def _check_ou_balance(self, move):
+    def _check_pay_balance(self, lines, payment):
         # Look for the balance of each OU
         ou_balance = {}
-        for line in move.line_ids:
+        pay_acc = payment.journal_id.default_debit_account_id or \
+                  payment.journal_id.default_credit_account_id
+        for line in lines.filtered(
+                lambda x: x.account_id.reconcile
+                          and x.account_id != pay_acc):
             if line.operating_unit_id.id not in ou_balance:
                 ou_balance[line.operating_unit_id.id] = 0.0
             ou_balance[line.operating_unit_id.id] += (line.debit - line.credit)
+        ou_balance_copy = ou_balance.copy()
+        for ou in ou_balance:
+            for ou2 in ou_balance:
+                if ou != ou2:
+                    ou_balance[ou] = ou_balance_copy[ou]*-1 + ou_balance_copy[ou2]
         return ou_balance
 
     @api.model
@@ -93,23 +102,18 @@ class AccountMoveLine(models.Model):
 
         # Create balancing entries for un-balanced OU's.
         amls = []
-        ou_balances = {}
+        payment = credit_move_id.payment_id or debit_move_id.payment_id
+        ou_balances = self._check_pay_balance(credit_move_id.move_id.line_ids + debit_move_id.move_id.line_ids, payment)
+        move_id = False
         for ou_id in ou_list_ids:
             # Create a balancing move line in the operating unit
             # clearing account
-            if credit_move_id.payment_id:
-                ou_balances[ou_id] = credit_move_id.payment_id.amount * -1
-            else:
-                ou_balances[ou_id] = debit_move_id.payment_id.amount
-        for ou_id in ou_list_ids:
-            # Create a balancing move line in the operating unit
-            # clearing account
-            if credit_move_id.payment_id:
-                move_id = self.env['account.move'].create(credit_move_id.payment_id._get_move_vals())
-            else:
-                move_id = self.env['account.move'].create(debit_move_id.payment_id._get_move_vals())
-            line_data = self.env['account.move'].\
-                _prepare_inter_ou_balancing_move_line(
+            if not move_id:
+                if credit_move_id.payment_id:
+                    move_id = self.env['account.move'].create(credit_move_id.payment_id._get_move_vals())
+                else:
+                    move_id = self.env['account.move'].create(debit_move_id.payment_id._get_move_vals())
+            line_data = self.env['account.move']._prepare_inter_ou_balancing_move_line(
                 move_id, ou_id, ou_balances)
             if line_data:
                 amls.append(ml_obj.with_context(wip=True).
@@ -117,7 +121,8 @@ class AccountMoveLine(models.Model):
         if amls:
             move_id.with_context(wip=False).\
                 write({'line_ids': [(4, aml.id) for aml in amls]})
-        return move_id
+            move_id.with_context({'reconciling': True}).post()
+        return move_id.id
 
 
 class AccountMove(models.Model):
@@ -165,6 +170,8 @@ class AccountMove(models.Model):
     def post(self):
         ml_obj = self.env['account.move.line']
         for move in self:
+            if self.env.context.get('reconciling', False):
+                continue
             if not move.company_id.ou_is_self_balanced:
                 continue
 
@@ -227,27 +234,32 @@ class AccountPartialReconcile(models.Model):
             res = rec.bal_move_id.reverse_moves()
         return res
 
+    @api.multi
+    def assign_balance_to_partial_reconcile(self):
+        if self.env.context.get('reversal', False):
+            return
+        ml_obj = self.env['account.move.line']
+        for rec in self:
+            if rec.bal_move_id:
+                rec.with_context({'reversal': True, 'reconciling': True}).reverse_bal_entries()
+            if rec.debit_move_id.operating_unit_id != rec.credit_move_id.operating_unit_id:
+                rec.bal_move_id = ml_obj.create_ou_balance(rec.credit_move_id, rec.debit_move_id)
+
     @api.model
     def create(self, vals):
         res = super(AccountPartialReconcile, self).create(vals)
-        ml_obj = self.env['account.move.line']
-        debit_move_id = ml_obj.browse(vals['debit_move_id'])
-        credit_move_id = ml_obj.browse(vals['credit_move_id'])
-        if debit_move_id.operating_unit_id != credit_move_id.operating_unit_id:
-            vals['bal_move_id'] = ml_obj.create_ou_balance(credit_move_id, debit_move_id)
+        res.assign_balance_to_partial_reconcile()
         return res
 
     @api.multi
     def write(self, vals):
-        res = super(AccountPartialReconcile, self).write(vals)
-        ml_obj = self.env['account.move.line']
-        for rec in self:
-            if rec.debit_move_id.operating_unit_id != rec.credit_move_id.operating_unit_id:
-                vals['bal_move_id'] = ml_obj.create_ou_balance(rec.credit_move_id, rec.debit_move_id)
-        return res
+        if not vals.get('bal_move_id', False) and not vals.get('full_reconcile_id', False):
+            self.assign_balance_to_partial_reconcile()
+        return super(AccountPartialReconcile, self).write(vals)
 
     @api.multi
     def unlink(self):
-        self.reverse_bal_entries()
+        if self.bal_move_id:
+            self.with_context({'reversal': True, 'reconciling': True}).reverse_bal_entries()
         result = super(AccountPartialReconcile, self).unlink()
         return result
