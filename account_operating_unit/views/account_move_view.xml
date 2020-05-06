@@ -64,15 +64,45 @@
                     name="operating_unit_id"
                     options="{'no_create': True}"
                     groups="operating_unit.group_multi_operating_unit"
+                    readonly="state != 'draft'"
                 />
             </xpath>
             <field name="invoice_line_ids" position="attributes">
-                <attribute name="context">
-                    {'default_move_type': context.get('default_move_type'),
-                    'journal_id':
-                    journal_id, 'default_partner_id': commercial_partner_id,
-                    'default_currency_id': currency_id or company_currency_id,
-                    'operating_unit_id': operating_unit_id}
+                <attribute
+                    name="context"
+                >{'default_type': context.get('default_type'), 'journal_id': journal_id, 'default_partner_id': commercial_partner_id, 'default_currency_id': currency_id != company_currency_id and currency_id or False, 'operating_unit_id': operating_unit_id}</attribute>
+            </field>
+            <xpath
+                expr="//field[@name='invoice_line_ids']/tree/field[@name='analytic_account_id']"
+                position="attributes"
+            >
+                <attribute
+                    name="domain"
+                >['|', ('company_id', '=', False), ('company_id', '=', parent.company_id), '|', ('operating_unit_ids', '=', context.get('operating_unit_id', False)), ('operating_unit_ids', '=', False)]</attribute>
+            </xpath>
+            <xpath
+                expr="//field[@name='invoice_line_ids']/form/sheet/group/field[@name='analytic_account_id']"
+                position="attributes"
+            >
+                <attribute
+                    name="domain"
+                >['|', ('operating_unit_ids', '=', context.get('operating_unit_id', False)), ('operating_unit_ids', '=', False)]</attribute>
+            </xpath>
+            <field name="line_ids" position="attributes">
+                <attribute name="context">{
+                    'default_type': context.get('default_type'),
+                    'line_ids': line_ids,
+                    'journal_id': journal_id,
+                    'default_partner_id': commercial_partner_id,
+                    'default_currency_id': currency_id != company_currency_id and currency_id or False,
+                    'default_operating_unit_id': operating_unit_id}
+                </attribute>
+            </field>
+            <field name="line_ids" position="attributes">
+                <attribute name="context" operation="update">
+                    {
+                        'default_operating_unit_id': operating_unit_id
+                    }
                 </attribute>
             </field>
             <xpath
@@ -132,11 +162,9 @@
                 expr="//field[@name='line_ids']/form/group/field[@name='analytic_account_id']"
                 position="attributes"
             >
-                <attribute name="domain">
-                    ['|', ('operating_unit_ids', '=',
-                    context.get('default_operating_unit_id', False)),
-                    ('operating_unit_ids', '=', False)]
-                </attribute>
+                <attribute
+                    name="domain"
+                >['|', ('operating_unit_ids', '=', context.get('default_operating_unit_id', False)), ('operating_unit_ids', '=', False)]</attribute>
             </xpath>
         </field>
     </record>
@@ -149,7 +177,6 @@
                 <field
                     name="operating_unit_id"
                     options="{'no_create': True}"
-                    optional="show"
                     groups="operating_unit.group_multi_operating_unit"
                 />
             </field>
@@ -178,4 +205,5 @@
             </filter>
         </field>
     </record>
+
 </odoo>
